@@ -1,32 +1,34 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from 'react'
 
-import { RgbColor, Color } from "../../types";
-import ColorList from "../ColorList/ColorList";
+import { RgbColor, Color } from '../../types'
+import ColorList from '../ColorList/ColorList'
 
-type PresetListProps = {
-  colors: Color[];
-  onClick: (color: RgbColor) => void;
-  currentColor: RgbColor;
-};
+interface PresetListProps {
+  colors: Color[]
+  onClick: (color: RgbColor) => void
+  currentColor: RgbColor
+}
 
-const PresetList = ({ colors, onClick, currentColor }: PresetListProps) => {
-  const [localColors, setLocalColors] = useState<RgbColor[]>([]);
-
-  useEffect(() => {
-    const local = JSON.parse(
-      window.localStorage.getItem("rpc-presets") || "[]"
-    ) as RgbColor[];
-
-    setLocalColors(local);
-  }, []);
+const PresetList: React.FC<PresetListProps> = ({
+  colors,
+  onClick,
+  currentColor
+}) => {
+  const [localColors, setLocalColors] = useState<RgbColor[]>([])
 
   useEffect(() => {
-    window.localStorage.setItem("rpc-presets", JSON.stringify(localColors));
-  }, [localColors]);
+    const localString = window.localStorage.getItem('rpc-presets')
+    const _localColors = JSON.parse(localString || '[]') as RgbColor[]
+    setLocalColors(_localColors)
+  }, [colors])
 
-  const addPreset = useCallback(() => {
-    setLocalColors((prev) => [...prev, currentColor]);
-  }, [colors, currentColor]);
+  useEffect(() => {
+    window.localStorage.setItem('rpc-presets', JSON.stringify(localColors))
+  }, [localColors])
+
+  const addPreset = () => {
+    setLocalColors((prev) => [...prev, currentColor])
+  }
 
   return (
     <ColorList
@@ -34,7 +36,7 @@ const PresetList = ({ colors, onClick, currentColor }: PresetListProps) => {
       colors={[...colors, ...localColors]}
       onAdd={addPreset}
     />
-  );
-};
+  )
+}
 
-export default React.memo(PresetList) as typeof PresetList;
+export default PresetList

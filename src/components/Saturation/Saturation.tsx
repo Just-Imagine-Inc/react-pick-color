@@ -1,37 +1,44 @@
-import React, { useCallback } from "react";
+import React, { useRef } from 'react'
 
-import { HslColor, HsvColor } from "../../types";
-import usePosition, { Position } from "../../hooks/usePosition";
+import { calculateSaturation } from './helper'
+import { HslColor, HsvColor } from '../../types'
+import * as styles from './Saturation.style'
 
-import * as styles from "./Saturation.style";
+interface SaturationProps {
+  hsl: HslColor
+  onChange?: (color: HsvColor) => void
+}
 
-export type SaturationProps = {
-  hsl: HslColor;
-  onChange?: (color: HsvColor) => void;
-};
+const Saturation: React.FC<SaturationProps> = ({ hsl, onChange }) => {
+  const container = useRef<HTMLDivElement>(null)
 
-const Saturation = ({ hsl, onChange }: SaturationProps) => {
-  const handleMove = useCallback(
-    ({ left, top }: Position) =>
-      onChange &&
-      onChange({
-        ...hsl,
-        s: left,
-        v: 1 - top
-      }),
-    [onChange]
-  );
+  const handleChange = (
+    e: React.TouchEvent | React.MouseEvent | MouseEvent
+  ) => {
+    if (container.current) {
+      const change = calculateSaturation(e, hsl, container.current)
+      change && typeof onChange === 'function' && onChange(change)
+    }
+  }
 
-  const { ref, handleStart } = usePosition({
-    onMove: handleMove
-  });
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleChange(e)
+    window.addEventListener('mousemove', handleChange)
+    window.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleMouseUp = () => {
+    window.removeEventListener('mousemove', handleChange)
+    window.removeEventListener('mouseup', handleMouseUp)
+  }
 
   return (
     <div
       style={styles.color}
-      ref={ref}
-      onTouchStart={handleStart}
-      onMouseDown={handleStart}
+      ref={container}
+      onMouseDown={handleMouseDown}
+      onTouchMove={handleChange}
+      onTouchStart={handleChange}
     >
       <style>{`
         .saturation-white {
@@ -43,14 +50,14 @@ const Saturation = ({ hsl, onChange }: SaturationProps) => {
           background: linear-gradient(to top, #000, rgba(0,0,0,0));
         }
         `}</style>
-      <div style={styles.gradient} className="saturation-white">
-        <div style={styles.gradient} className="saturation-black" />
+      <div style={styles.gradient} className='saturation-white'>
+        <div style={styles.gradient} className='saturation-black' />
         <div style={styles.pointer}>
           <div style={styles.circle} />
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default React.memo(Saturation) as typeof Saturation;
+export default Saturation

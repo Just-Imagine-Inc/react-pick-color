@@ -5,7 +5,7 @@ import {
   HslColor,
   HsvColor,
   RgbColor,
-  Alpha,
+  AlphaType as Alpha,
   Theme,
   Color,
   ColorCombination,

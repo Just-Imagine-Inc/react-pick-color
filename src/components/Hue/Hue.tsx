@@ -1,38 +1,51 @@
-import React, { useCallback } from "react";
+import React, { useRef } from 'react'
 
-import { HslColor } from "../../types";
+import { calculateHue } from './helper'
+import { HslColor } from '../../types'
 
-import * as styles from "./Hue.style";
-import usePosition, { Position } from "../../hooks/usePosition";
+import * as styles from './Hue.style'
 
-type HueProps = {
-  hsl: HslColor;
-  onChange?: (color: HslColor) => void;
-};
+interface HueProps {
+  hsl: HslColor
+  onChange?: (color: HslColor) => void
+}
 
-const Hue = ({ hsl, onChange }: HueProps) => {
-  const handleMove = useCallback(
-    ({ left }: Position) =>
-      onChange && onChange({ h: 360 * left, s: hsl.s, l: hsl.l, a: hsl.a }),
-    [onChange]
-  );
+const Hue: React.FC<HueProps> = ({ hsl, onChange }) => {
+  const container = useRef<HTMLDivElement>(null)
 
-  const { ref, handleStart } = usePosition({
-    onMove: handleMove
-  });
+  const handleChange = (
+    e: React.TouchEvent | React.MouseEvent | MouseEvent
+  ) => {
+    if (container.current) {
+      const change = calculateHue(e, hsl, container.current)
+      change && typeof onChange === 'function' && onChange(change)
+    }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleChange(e)
+    window.addEventListener('mousemove', handleChange)
+    window.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleMouseUp = () => {
+    window.removeEventListener('mousemove', handleChange)
+    window.removeEventListener('mouseup', handleMouseUp)
+  }
 
   return (
     <div
       style={styles.container}
-      ref={ref}
-      onTouchStart={handleStart}
-      onMouseDown={handleStart}
+      ref={container}
+      onMouseDown={(e) => handleMouseDown(e)}
+      onTouchMove={(e) => handleChange(e)}
+      onTouchStart={(e) => handleChange(e)}
     >
       <div style={styles.pointer}>
         <div style={styles.slider} />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default React.memo(Hue) as typeof Hue;
+export default Hue
