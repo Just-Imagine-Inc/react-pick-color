@@ -13,7 +13,9 @@
     "build": "yarn clean && rollup -c",
     "size": "yarn build && size-limit",
     "test": "jest",
-    "test:update": "jest -u"
+    "test:update": "jest -u",
+
+    "prepublish": "yarn build"
   },
   "size-limit": [
     {
